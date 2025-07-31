@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  db-mysql:
+    image: mysql:8.0.43
+    container_name: db-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: coal_mining
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    restart: always
+    volumes:
+      - ./data/production_logs.sql:/docker-entrypoint-initdb.d/production_logs.sql
+    ports:
+      - "3306:3306"
+  dwh-clickhouse:
+    image: clickhouse:25.5.9
+    container_name: dwh-clickhouse
+    environment:
+      - CLICKHOUSE_USER=admin
+      - CLICKHOUSE_PASSWORD=admin
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1  # Enables RBAC & user management
+    ports:
+      - "8123:8123"
+    restart: always
+    volumes:
+      - ./data/init-clickhouse-db.sql:/docker-entrypoint-initdb.d/init-clickhouse-db.sql
+      - dwh-clickhouse-vol:/var/lib/clickhouse
+
+volumes:
+  dwh-clickhouse-vol:
