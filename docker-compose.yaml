@@ -4,7 +4,6 @@ services:
   db-mysql:
     image: mysql:8.0.43
     container_name: db-mysql
-    command: mysql -u root -p < /tmp/production_logs.sql
     environment:
       MYSQL_ROOT_PASSWORD: admin
       MYSQL_DATABASE: coal_mining
@@ -12,7 +11,7 @@ services:
       MYSQL_PASSWORD: admin
     restart: always
     volumes:
-      - data/production_logs.sql:/tmp/
+      - ./data/production_logs.sql:/docker-entrypoint-initdb.d/production_logs.sql
     ports:
       - "3306:3306"
   dwh-clickhouse:
