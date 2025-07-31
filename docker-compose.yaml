@@ -1,0 +1,18 @@
+version: '3.7'
+
+services:
+  dwh-clickhouse:
+    image: clickhouse:lts
+    container_name: dwh-clickhouse
+    environment:
+      - CLICKHOUSE_USER=admin
+      - CLICKHOUSE_PASSWORD=admin
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1  # Enables RBAC & user management
+    ports:
+      - 8123:8123
+    restart: always
+    volumes:
+      - dwh-clickhouse-vol:/var/lib/clickhouse
+
+volumes:
+  dwh-clickhouse-vol:
