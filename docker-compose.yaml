@@ -25,6 +25,7 @@ services:
       - "8123:8123"
     restart: always
     volumes:
+      - ./data/init-clickhouse-db.sql:/docker-entrypoint-initdb.d/init-clickhouse-db.sql
       - dwh-clickhouse-vol:/var/lib/clickhouse
 
 volumes:
