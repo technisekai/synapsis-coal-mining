@@ -21,14 +21,14 @@ def read_data_from_sources():
 
     root_dir = os.getenv('PROJECT_DATA_DIR')
 
-    # Read csv [PASS]
+    # Read CSV
     equipement_sensor = read_from_csv(f"{root_dir}/equipment_sensors.csv")
-    # Read from mysql [PASS]
+    # Read from MySQL
     connection = mysql_connection(host=host, port=port, user=user, password=password, database=database)
     production_logs = read_from_mysql(connection, "select * from production_logs")
     mines = read_from_mysql(connection, "select * from mines")
     connection.close()
-    # Read api [PASS]
+    # Read API
     daily_weather = [read_from_api(api)]
 
     return {
