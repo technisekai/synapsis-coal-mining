@@ -70,10 +70,21 @@ services:
       dwh-clickhouse:
         condition: service_healthy
     networks:
-      - synapsis-network 
+      - synapsis-network
+  bi-metabase:
+    image: metabase/metabase:v0.54.12.x
+    container_name: bi-metabase
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - bi-mtb-vol:/metabase-data
+    networks:
+      - synapsis-network
 
 volumes:
   dwh-clickhouse-vol:
+  bi-mtb-vol:
 
 networks:
   synapsis-network:
