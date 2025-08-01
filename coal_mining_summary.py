@@ -2,6 +2,8 @@ import time
 import os
 
 def read_data_from_sources():
+    print("INF read data from multiple sources")
+
     from cores.files import read_from_csv
     from cores.mysql import mysql_connection, read_from_mysql
     from cores.api import read_from_api
@@ -24,6 +26,7 @@ def read_data_from_sources():
     # Read from mysql [PASS]
     connection = mysql_connection(host=host, port=port, user=user, password=password, database=database)
     production_logs = read_from_mysql(connection, "select * from production_logs")
+    mines = read_from_mysql(connection, "select * from mines")
     connection.close()
     # Read api [PASS]
     daily_weather = [read_from_api(api)]
@@ -31,10 +34,13 @@ def read_data_from_sources():
     return {
         "file_csv_equipement_sensor": equipement_sensor, 
         "mysql_coal_mining_production_logs": production_logs, 
-        "api_daily_weather": daily_weather
+        "api_daily_weather": daily_weather,
+        "mysql_coal_mining_mines": mines
     }
 
 def inject_data_into_dwh(data: dict):
+    print("INF inject data sources into bronze layer")
+
     from cores.clickhouse import clickhouse_connection, create_table_clickhouse, insert_rows_clickhouse
 
     # Clickhouse Creds
