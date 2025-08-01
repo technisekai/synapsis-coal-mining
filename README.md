@@ -14,6 +14,7 @@
 
 ## How to Run
 1. clone this project
+2. run `cd synapsis-coal-mining`
 2. Modify `.env` file except vars [optional]:
 
      ```
