@@ -48,6 +48,4 @@ check_result as (
 	group by _id
 )
 select * from check_result;
-
-alter table layer_gold.summary_coal_mining 
-delete where _id in (select _id from layer_gold.test_summary_coal_mining);
+alter table layer_gold.summary_coal_mining delete where _id in (select _id from layer_gold.fail_summary_coal_mining);
