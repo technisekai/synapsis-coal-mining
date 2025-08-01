@@ -1,0 +1,6 @@
+clickhouse_connect==0.8.18
+pandas==1.5.1
+PyMySQL==1.1.0
+Requests==2.32.4
+numpy==1.23.5
+cryptography==42.0.8

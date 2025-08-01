@@ -103,13 +103,22 @@ def create_table_clickhouse(
     clickhouse_execute(destination_connect, query_create_table)
 
 def insert_rows_clickhouse(destination_connect:clickhouse_connection, destination_table_name: str, data: list[dict]):
+    """
+    Insert data into clickhouse database.
+
+    Arg(s):
+        destination_connect: connection to destination database
+        destination_table_name: table destination to inject data
+        data: data to inject
+    
+    Return(s):
+        None, inserted data to table
+    """
     columns = list(data[0].keys())
     values = [tuple(row[col] \
                     if not isinstance(row.get(col, None), (dict, list)) \
                         else json.dumps(row[col]) \
                             for col in columns) for row in data]
-    
-    print(values)
     destination_connect.insert(
         table=destination_table_name, 
         column_names=columns, 

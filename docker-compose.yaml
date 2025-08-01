@@ -6,27 +6,76 @@ services:
     container_name: db-mysql
     environment:
       MYSQL_ROOT_PASSWORD: admin
-      MYSQL_DATABASE: coal_mining
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      MYSQL_USER: $MYSQL_USERNAME
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
     restart: always
     volumes:
       - ./data/production_logs.sql:/docker-entrypoint-initdb.d/production_logs.sql
     ports:
       - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user", "-p$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - synapsis-network 
   dwh-clickhouse:
     image: clickhouse:25.5.9
     container_name: dwh-clickhouse
     environment:
-      - CLICKHOUSE_USER=admin
-      - CLICKHOUSE_PASSWORD=admin
-      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1  # Enables RBAC & user management
+      CLICKHOUSE_USER: $CLICKHOUSE_USERNAME
+      CLICKHOUSE_PASSWORD: $CLICKHOUSE_PASSWORD
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1  # Enables RBAC & user management
     ports:
       - "8123:8123"
     restart: always
     volumes:
       - ./data/init-clickhouse-db.sql:/docker-entrypoint-initdb.d/init-clickhouse-db.sql
       - dwh-clickhouse-vol:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - synapsis-network 
+  py-etl:
+    build:
+      context: .
+      dockerfile: ./Dockerfile_etl
+    image: py-etl:v1.0.0
+    container_name: py-etl
+    environment:
+      CLICKHOUSE_USERNAME: $CLICKHOUSE_USERNAME
+      CLICKHOUSE_PASSWORD: $CLICKHOUSE_PASSWORD
+      CLICKHOUSE_HOSTNAME: $CLICKHOUSE_HOSTNAME
+      CLICKHOUSE_PORT: $CLICKHOUSE_PORT
+      MYSQL_USERNAME: $MYSQL_USERNAME
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_HOSTNAME: $MYSQL_HOSTNAME
+      MYSQL_PORT: $MYSQL_PORT
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      API_PARAM_START_DATE: $API_PARAM_START_DATE
+      API_PARAM_END_DATE: $API_PARAM_END_DATE
+      PROJECT_DATA_DIR: $PROJECT_DATA_DIR
+      PROJECT_QUERIES_DIR: $PROJECT_QUERIES_DIR
+      QUERIES_FILENAME: $QUERIES_FILENAME
+    depends_on:
+      db-mysql:
+        condition: service_healthy
+      dwh-clickhouse:
+        condition: service_healthy
+    networks:
+      - synapsis-network 
 
 volumes:
   dwh-clickhouse-vol:
+
+networks:
+  synapsis-network:
+    driver: bridge
+    name: synapsis-network
