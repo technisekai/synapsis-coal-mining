@@ -10,7 +10,7 @@ with src_summary_production_logs as (
 		date,
 		sum(case when mpl.tons_extracted < 0 then 0 else mpl.tons_extracted end) as total_production_daily,
 		floor(avg(mpl.quality_grade), 2) as average_quality_grade
-	from layer_bronze.mysql_production_logs mpl 
+	from layer_bronze.mysql_coal_mining_production_logs mpl 
 	group by date
 ),
 src_summary_equipment_sensor as (
@@ -18,7 +18,7 @@ src_summary_equipment_sensor as (
 		toDate(fes.timestamp) as date,
 		floor(sum(case when fes.status = 'active' then 1 else 0 end) / count(*), 3) * 100 as equipment_utilization,
 		floor(sum(fes.fuel_consumption)) as total_fuel_consumption
-	from layer_bronze.files_equipement_sensor fes
+	from layer_bronze.file_csv_equipement_sensor fes
 	group by toDate(timestamp)
 ),
 src_daily_weather as (
