@@ -3,27 +3,27 @@
 Quality checking of summary data of coal mining
 
 */
-drop table if exists layer_gold.fail_summary_coal_mining;
-create table layer_gold.fail_summary_coal_mining engine = MergeTree() order by _id as
+drop table if exists layer_gold.fail_daily_production_metrics;
+create table layer_gold.fail_daily_production_metrics engine = MergeTree() order by _id as
 with check_total_production_daily as (
 	select 
 		*,
 		'check_total_production_daily < 0' as reason
-	from layer_gold.summary_coal_mining scm 
+	from layer_gold.daily_production_metrics scm 
 	where total_production_daily < 0
 ),
 check_equipment_utilization as (
 	select 
 		*,
 		'equipment_utilization < 0 or > 100' as reason
-	from layer_gold.summary_coal_mining scm 
+	from layer_gold.daily_production_metrics scm 
 	where equipment_utilization < 0 or equipment_utilization > 100
 ),
 check_weather_impact as (
 	select 
 		*,
 		'weather_impact is null' as reason
-	from layer_gold.summary_coal_mining scm 
+	from layer_gold.daily_production_metrics scm 
 	where weather_impact is null
 ),
 merge_data as (
@@ -48,4 +48,4 @@ check_result as (
 	group by _id
 )
 select * from check_result;
-alter table layer_gold.summary_coal_mining delete where _id in (select _id from layer_gold.fail_summary_coal_mining);
+alter table layer_gold.daily_production_metrics delete where _id in (select _id from layer_gold.fail_daily_production_metrics);
