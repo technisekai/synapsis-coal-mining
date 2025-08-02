@@ -54,8 +54,6 @@ def inject_data_into_dwh(data: dict):
     password = os.getenv('CLICKHOUSE_PASSWORD')
     database = 'layer_bronze'
 
-    print(user, password, host)
-
     ch_connection = clickhouse_connection(host=host, port=port, user=user, password=password, database=database)
     
     for table_name in data.keys():
