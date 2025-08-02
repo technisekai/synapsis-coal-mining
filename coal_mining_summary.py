@@ -7,6 +7,7 @@ def read_data_from_sources():
     from cores.files import read_from_csv
     from cores.mysql import mysql_connection, read_from_mysql
     from cores.api import read_from_api
+    from datetime import datetime, timedelta
 
     # MySQL Creds
     host = os.getenv('MYSQL_HOSTNAME')
@@ -17,6 +18,9 @@ def read_data_from_sources():
 
     start_date = os.getenv('API_PARAM_START_DATE')
     end_date = os.getenv('API_PARAM_END_DATE')
+    tmp_start_date = (datetime.now() - timedelta(days=93))
+    if tmp_start_date > datetime.strptime(start_date, '%Y-%m-%d'):
+        start_date = tmp_start_date.strftime('%Y-%m-%d')
     api = f"https://api.open-meteo.com/v1/forecast?latitude=2.0167&longitude=117.3000&daily=temperature_2m_mean,precipitation_sum&timezone=Asia/Jakarta&past_days=0&start_date={start_date}&end_date={end_date}"
 
     root_dir = os.getenv('PROJECT_DATA_DIR')
