@@ -3,8 +3,8 @@
 Generate summary data of coal mining
 
 */
-drop table if exists layer_gold.summary_coal_mining;
-create table layer_gold.summary_coal_mining engine = MergeTree() order by _id as
+drop table if exists layer_gold.daily_production_metrics;
+create table layer_gold.daily_production_metrics engine = MergeTree() order by _id as
 with src_summary_production_logs as (
 	select
 		date,
@@ -13,12 +13,48 @@ with src_summary_production_logs as (
 	from layer_bronze.mysql_coal_mining_production_logs mpl 
 	group by date
 ),
+get_equipment_id as (
+	select distinct 
+		equipment_id 
+	from layer_bronze.file_csv_equipement_sensor 
+	order by equipment_id
+),
+get_date as (
+	select distinct
+		toDate(timestamp) as date
+	from layer_bronze.file_csv_equipement_sensor 
+),
+expected_equipment_id as (
+	select
+	*
+	from get_date
+	cross join get_equipment_id
+),
+stg_equipment_sensor as (
+	select 
+		*
+	from layer_bronze.file_csv_equipement_sensor fces
+	union all
+    select distinct
+    	generateUUIDv4() as _id,
+    	concat(eei.date, ' 59:59:59') as timestamp,
+		eei.equipment_id,
+		'unknown' as status,
+		null as fuel_consumption,
+		null as maintenance_alert,
+		now() as _created_at,
+		now() as _updated_at
+    from expected_equipment_id as eei
+    left join layer_bronze.file_csv_equipement_sensor as fces
+    on toDate(fces.timestamp) = eei.date and eei.equipment_id = fces.equipment_id
+    where fces.equipment_id is null
+),
 src_summary_equipment_sensor as (
 	select
 		toDate(fes.timestamp) as date,
 		floor(sum(case when fes.status = 'active' then 1 else 0 end) / count(*), 3) * 100 as equipment_utilization,
 		floor(sum(fes.fuel_consumption)) as total_fuel_consumption
-	from layer_bronze.file_csv_equipement_sensor fes
+	from stg_equipment_sensor fes
 	group by toDate(timestamp)
 ),
 src_daily_weather as (
